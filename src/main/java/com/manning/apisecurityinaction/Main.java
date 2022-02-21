@@ -1,5 +1,8 @@
 package com.manning.apisecurityinaction;
 
+import com.manning.apisecurityinaction.controller.*;
+import static spark.Spark.*;
+
 import java.nio.file.*;
 
 import org.dalesbred.*;
@@ -12,6 +15,18 @@ public class Main {
 			"jdbc:h2:mem:natter", "natter", "password");
 		var database = Database.forDataSource(datasource);
 		createTables(database);
+
+		var spaceController = new SpaceController(database);
+		post("/spaces", spaceController::createSpace);
+
+		after((request, response) -> {
+			response.type("application/json");
+		});
+
+		internalServerError(new JSONObject()
+			.put("error", "internal server error").toString());
+		notFound(new JSONObject()
+			.put("error", "not found").toString());
 	}
 
 	private static void createTables(Database database) throws Exception {
