@@ -19,10 +19,16 @@ public class SpaceController {
 			var spaceId = database.findUniqueLong(
 				"SELECT NEXT VALUE FOR space_id_seq;");
 			// WARNING: This next line of code is vulnerable to SQL injection.
+			/*
 			database.updateUnique(
 				"INSERT INTO spaces(space_id, name, owner) " +
 					"VALUES(" + spaceId + ", '" + spaceName +
 					"', '" + owner + "');");
+			*/
+			// Avoid SQL injection attacks with PreparedStatement placeholders for user input.
+			database.updateUnique(
+				"INSERT INTO spaces(space_id, name, owner) VALUES(?, ?, ?);",
+					spaceId, spaceName, owner);
 
 			// Set response headers.
 			response.status(201);
