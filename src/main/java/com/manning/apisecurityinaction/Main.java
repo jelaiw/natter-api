@@ -9,6 +9,10 @@ import org.dalesbred.*;
 import org.h2.jdbcx.*;
 import org.json.*;
 
+import org.dalesbred.result.EmptyResultException;
+import spark.Request;
+import spark.Response;
+
 public class Main {
 	public static void main(String... args) throws Exception {
 		var datasource = JdbcConnectionPool.create(
@@ -31,12 +35,21 @@ public class Main {
 			.put("error", "internal server error").toString());
 		notFound(new JSONObject()
 			.put("error", "not found").toString());
+
+		exception(IllegalArgumentException.class, Main::badRequest);
+		exception(JSONException.class, Main::badRequest);
+		exception(EmptyResultException.class, (e, request, response) -> response.status(404));
 	}
 
 	private static void createTables(Database database) throws Exception {
 		var path = Paths.get(
 			Main.class.getResource("/schema.sql").toURI());
 		database.update(Files.readString(path));
+	}
+
+	private static void badRequest(Exception exception, Request request, Response response) {
+		response.status(400);
+		response.body("{\"error\": \"" + exception + "\"}");
 	}
 }
 
