@@ -32,6 +32,8 @@ public class Main {
 		});
 		// Avoid leaking server information in header. Is there value in a misleading value here?
 		afterAfter((request, response) -> response.header("Server", ""));
+		// Disable reflected XSS protection in web browser.
+		afterAfter((request, response) -> response.header("X-XSS-Protection", "0"));
 
 		internalServerError(new JSONObject()
 			.put("error", "internal server error").toString());
