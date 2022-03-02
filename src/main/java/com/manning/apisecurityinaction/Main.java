@@ -51,7 +51,7 @@ public class Main {
 
 	private static void badRequest(Exception exception, Request request, Response response) {
 		response.status(400);
-		response.body("{\"error\": \"" + exception + "\"}");
+		response.body("{\"error\": \"" + exception.getMessage() + "\"}");
 	}
 }
 
