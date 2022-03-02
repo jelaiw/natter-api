@@ -30,6 +30,8 @@ public class Main {
 		after((request, response) -> {
 			response.type("application/json");
 		});
+		// Avoid leaking server information in header. Is there value in a misleading value here?
+		afterAfter((request, response) -> response.header("Server", ""));
 
 		internalServerError(new JSONObject()
 			.put("error", "internal server error").toString());
