@@ -35,6 +35,24 @@ public class Main {
 		// Disable reflected XSS protection in web browser.
 		afterAfter((request, response) -> response.header("X-XSS-Protection", "0"));
 
+		// Respond with 415 Unsupported Media Type for anything besides "application/json" content type.
+		before(((request, response) -> {
+			if (request.requestMethod().equals("POST") && !"application/json".equals(request.contentType())) {
+				halt(415, new JSONObject().put("error", "Only application/json supported.").toString());
+			}
+		}));
+
+		// Harden endpoint against XSS (see Table 2.1 in section 2.6.2 and 2.6.3 for further detail).
+		afterAfter((request, response) -> {
+			response.type("application/json;charset=utf-8");
+			response.header("X-Content-Type-Options", "nosniff");
+			response.header("X-Frame-Options", "DENY");
+			response.header("Cache-Control", "no-store");
+			response.header("Content-Security-Policy",
+				"default-src 'none'; frame-ancestors 'none'; sandbox");
+
+		});
+
 		internalServerError(new JSONObject()
 			.put("error", "internal server error").toString());
 		notFound(new JSONObject()
