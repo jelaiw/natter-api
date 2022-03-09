@@ -13,6 +13,8 @@ import org.dalesbred.result.EmptyResultException;
 import spark.Request;
 import spark.Response;
 
+import com.google.common.util.concurrent.RateLimiter;
+
 public class Main {
 	public static void main(String... args) throws Exception {
 		var datasource = JdbcConnectionPool.create(
@@ -26,6 +28,16 @@ public class Main {
 
 		var spaceController = new SpaceController(database);
 		post("/spaces", spaceController::createSpace);
+
+		// Implement basic rate-limiting.
+		// See https://guava.dev/releases/29.0-jre/api/docs/com/google/common/util/concurrent/RateLimiter.html.
+		var rateLimiter = RateLimiter.create(2.0d);
+		before((request, response) -> {
+			if (!rateLimiter.tryAcquire()) {
+				response.header("Retry-After", "2");
+				halt(429);
+			}
+		});
 
 		// Avoid leaking server information in header. Is there value in a misleading value here?
 		afterAfter((request, response) -> response.header("Server", ""));
