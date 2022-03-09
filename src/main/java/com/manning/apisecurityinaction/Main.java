@@ -27,9 +27,6 @@ public class Main {
 		var spaceController = new SpaceController(database);
 		post("/spaces", spaceController::createSpace);
 
-		after((request, response) -> {
-			response.type("application/json");
-		});
 		// Avoid leaking server information in header. Is there value in a misleading value here?
 		afterAfter((request, response) -> response.header("Server", ""));
 		// Disable reflected XSS protection in web browser.
