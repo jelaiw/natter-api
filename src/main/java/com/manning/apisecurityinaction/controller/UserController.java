@@ -6,6 +6,9 @@ import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
 
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+
 public class UserController {
 	private static final String USERNAME_PATTERN = "[a-zA-Z][a-zA-Z0-9]{1,29}";
 
@@ -13,6 +16,35 @@ public class UserController {
 
 	public UserController(Database database) {
 		this.database = database;
+	}
+
+	public void authenticate(Request request, Response response) {
+		var authHeader = request.headers("Authorization");
+		if (authHeader == null || !authHeader.startsWith("Basic ")) {
+			return;
+		}
+
+		var offset = "Basic ".length();
+		// See https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Base64.html.
+		var credentials = new String(Base64.getDecoder().decode(
+			authHeader.substring(offset)), StandardCharsets.UTF_8);
+
+		var components = credentials.split(":", 2);
+		if (components.length != 2) {
+			throw new IllegalArgumentException("invalid auth header");
+		}
+
+		var username = components[0];
+		var password = components[1];
+
+		if (!username.matches(USERNAME_PATTERN)) {
+			throw new IllegalArgumentException("invalid username");
+		}
+
+		var hash = database.findOptional(String.class, "SELECT pw_hash FROM users WHERE user_id = ?", username);
+		if (hash.isPresent() && SCryptUtil.check(password, hash.get())) {
+			request.attribute("subject", username);
+		}
 	}
 
 	public JSONObject registerUser(Request request, Response response) throws Exception {

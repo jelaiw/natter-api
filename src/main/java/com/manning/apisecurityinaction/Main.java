@@ -32,6 +32,9 @@ public class Main {
 		var userController = new UserController(database);
 		post("/users", userController::registerUser);
 
+		// Authenticate users before all API calls.
+		before(userController::authenticate);
+
 		// Implement basic rate-limiting.
 		// See https://guava.dev/releases/29.0-jre/api/docs/com/google/common/util/concurrent/RateLimiter.html.
 		var rateLimiter = RateLimiter.create(2.0d);
