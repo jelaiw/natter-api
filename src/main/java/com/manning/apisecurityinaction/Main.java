@@ -29,6 +29,9 @@ public class Main {
 		var spaceController = new SpaceController(database);
 		post("/spaces", spaceController::createSpace);
 
+		var userController = new UserController(database);
+		post("/users", userController::registerUser);
+
 		// Implement basic rate-limiting.
 		// See https://guava.dev/releases/29.0-jre/api/docs/com/google/common/util/concurrent/RateLimiter.html.
 		var rateLimiter = RateLimiter.create(2.0d);
