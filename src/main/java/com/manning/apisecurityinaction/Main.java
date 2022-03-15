@@ -17,6 +17,9 @@ import com.google.common.util.concurrent.RateLimiter;
 
 public class Main {
 	public static void main(String... args) throws Exception {
+		// See docs at https://sparkjava.com/documentation#embedded-web-server.
+		secure("localhost.p12", "changeit", null, null);
+
 		var datasource = JdbcConnectionPool.create(
 			"jdbc:h2:mem:natter", "natter", "password");
 		var database = Database.forDataSource(datasource);
