@@ -68,7 +68,9 @@ public class Main {
 			response.header("Cache-Control", "no-store");
 			response.header("Content-Security-Policy",
 				"default-src 'none'; frame-ancestors 'none'; sandbox");
-
+			// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security.
+//			response.header("Strict-Transport-Security", "max-age=31536000"); // 1 year.
+			response.header("Strict-Transport-Security", "max-age=7200"); // 2 hours for testing, see 3.4.2 tip.
 		});
 
 		internalServerError(new JSONObject()
