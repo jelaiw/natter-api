@@ -30,9 +30,11 @@ public class Main {
 		database = Database.forDataSource(datasource);
 
 		var spaceController = new SpaceController(database);
+		// Wire up /spaces post to create a new space.
 		post("/spaces", spaceController::createSpace);
 
 		var userController = new UserController(database);
+		// Wire up /users post to register a new user.
 		post("/users", userController::registerUser);
 
 		// Authenticate users before all API calls.
@@ -43,6 +45,7 @@ public class Main {
 		before(auditController::auditRequestStart);
 		afterAfter(auditController::auditRequestEnd);
 
+		// Wire up /logs get to show audit logs.
 		get("/logs", auditController::readAuditLog);
 
 		// Implement basic rate-limiting.
