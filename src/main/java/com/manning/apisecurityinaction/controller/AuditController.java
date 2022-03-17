@@ -39,7 +39,7 @@ public class AuditController {
 		database.withVoidTransaction(tx -> {
 			var auditId = database.findUniqueLong("SELECT NEXT VALUE FOR audit_id_seq");
 			request.attribute("audit_id", auditId);
-			database.updateUnique("INSERT INTO audit_log(audit_id, method, path, user_id, audit_time) VALUES (?, ?, ?, ?, current_timestamp",
+			database.updateUnique("INSERT INTO audit_log(audit_id, method, path, user_id, audit_time) VALUES (?, ?, ?, ?, current_timestamp)",
 				auditId,
 				request.requestMethod(),
 				request.pathInfo(),
@@ -49,7 +49,7 @@ public class AuditController {
 	}
 
 	public void auditRequestEnd(Request request, Response response) {
-		database.updateUnique("INSERT INTO audit_log(audit_id, method, path, status, user_id, audit_time) VALUES (?, ?, ?, ?, ?, current_timestamp",
+		database.updateUnique("INSERT INTO audit_log(audit_id, method, path, status, user_id, audit_time) VALUES (?, ?, ?, ?, ?, current_timestamp)",
 			request.attribute("audit_id"),
 			request.requestMethod(),
 			request.pathInfo(),
