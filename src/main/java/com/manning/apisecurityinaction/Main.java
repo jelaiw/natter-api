@@ -38,6 +38,13 @@ public class Main {
 		// Authenticate users before all API calls.
 		before(userController::authenticate);
 
+		// Perform audit logging after authn (but before authz).
+		var auditController = new AuditController(database);
+		before(auditController::auditRequestStart);
+		afterAfter(auditController::auditRequestEnd);
+
+		get("/logs", auditController::readAuditLog);
+
 		// Implement basic rate-limiting.
 		// See https://guava.dev/releases/29.0-jre/api/docs/com/google/common/util/concurrent/RateLimiter.html.
 		var rateLimiter = RateLimiter.create(2.0d);
