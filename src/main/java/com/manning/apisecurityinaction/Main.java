@@ -45,6 +45,9 @@ public class Main {
 		before(auditController::auditRequestStart);
 		afterAfter(auditController::auditRequestEnd);
 
+		// Require authentication for /spaces endpoint.
+		before("/spaces", userController::requireAuthentication);
+
 		// Wire up /logs get to show audit logs.
 		get("/logs", auditController::readAuditLog);
 
