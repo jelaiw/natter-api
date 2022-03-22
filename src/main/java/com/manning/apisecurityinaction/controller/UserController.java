@@ -5,6 +5,7 @@ import org.dalesbred.Database;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
+import spark.Filter;
 import static spark.Spark.halt;
 
 import java.util.Base64;
@@ -17,6 +18,28 @@ public class UserController {
 
 	public UserController(Database database) {
 		this.database = database;
+	}
+
+	public Filter requirePermission(String method, String permission) {
+		return (request, response) -> {
+			// Ignore requests that don't match the request method.
+			if (!method.equalsIgnoreCase(request.requestMethod())) {
+				return;
+			}
+
+			requireAuthentication(request, response);
+
+			var spaceId = Long.parseLong(request.params(":spaceId"));
+			var username = (String) request.attribute("subject");
+
+			var perms = database.findOptional(String.class,
+				"SELECT perms FROM permissions WHERE space_id = ? AND user_id = ?",
+				spaceId, username).orElse("");
+
+			if (!perms.contains(permission)) {
+				halt(403);
+			}
+		};
 	}
 
 	public void requireAuthentication(Request request, Response response) {
