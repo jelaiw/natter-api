@@ -1,7 +1,9 @@
+CREATE USER natter_api_user PASSWORD 'password';
 CREATE TABLE users(
 	user_id VARCHAR(30) PRIMARY KEY,
 	pw_hash VARCHAR(255) NOT NULL
 );
+GRANT SELECT, INSERT ON users TO natter_api_user;
 CREATE TABLE spaces(
 	space_id INT PRIMARY KEY,
 	name VARCHAR(255) NOT NULL,
@@ -18,6 +20,7 @@ CREATE TABLE messages(
 );
 CREATE SEQUENCE msg_id_seq;
 CREATE INDEX msg_timestamp_idx ON messages(msg_time);
+GRANT SELECT, INSERT ON spaces, messages TO natter_api_user;
 CREATE TABLE audit_log(
 	audit_id INT NULL,
 	method VARCHAR(10) NOT NULL,
@@ -27,7 +30,4 @@ CREATE TABLE audit_log(
 	audit_time TIMESTAMP NOT NULL
 );
 CREATE SEQUENCE audit_id_seq;
-CREATE USER natter_api_user PASSWORD 'password';
-GRANT SELECT, INSERT ON spaces, messages TO natter_api_user;
-GRANT SELECT, INSERT ON users TO natter_api_user;
 GRANT SELECT, INSERT ON audit_log TO natter_api_user;
