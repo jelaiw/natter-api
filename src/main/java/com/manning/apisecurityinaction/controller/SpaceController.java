@@ -43,6 +43,10 @@ public class SpaceController {
 					spaceId, spaceName, owner);
 			*/
 
+			// Grant all permissions in ACL table to space owner.
+			database.updateUnique("INSERT INTO permissions(space_id, user_id, perms) VALUES(?, ?, ?)",
+				spaceId, owner, "rwd");
+
 			// Set response headers.
 			response.status(201);
 			response.header("Location", "/spaces/" + spaceId);
