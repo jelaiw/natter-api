@@ -48,6 +48,24 @@ public class Main {
 		// Require authentication for /spaces endpoint.
 		before("/spaces", userController::requireAuthentication);
 
+		// Wire up post message with write permission.
+		before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
+		post("/spaces/:spaceId/messages", spaceController::postMessage);
+
+		// Wire up read message with read permission.
+		before("/spaces/:spaceId/messages/*", userController.requirePermission("GET", "r"));
+		get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
+
+		// Wire up find messages with write permission.
+		before("/spaces/:spaceId/messages", userController.requirePermission("GET", "r"));
+		get("/spaces/:spaceId/messages", spaceController::findMessages);
+
+		var moderatorController = new ModeratorController(database);
+
+		// Wire up delete post with delete permission.
+		before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"));
+		delete("/spaces/:spaceId/messages/:msgId", moderatorController::deletePost);
+
 		// Wire up /logs get to show audit logs.
 		get("/logs", auditController::readAuditLog);
 
