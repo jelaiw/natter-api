@@ -66,6 +66,10 @@ public class Main {
 		before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"));
 		delete("/spaces/:spaceId/messages/:msgId", moderatorController::deletePost);
 
+		// Wire up add member with read permission.
+		before("/spaces/:spaceId/members", userController.requirePermission("POST", "r"));
+		post("/spaces/:spaceId/members", spaceController::addMember);
+
 		// Wire up /logs get to show audit logs.
 		get("/logs", auditController::readAuditLog);
 
