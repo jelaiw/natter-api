@@ -21,6 +21,7 @@ CREATE TABLE messages(
 CREATE SEQUENCE msg_id_seq;
 CREATE INDEX msg_timestamp_idx ON messages(msg_time);
 GRANT SELECT, INSERT ON spaces, messages TO natter_api_user;
+GRANT DELETE ON messages TO natter_api_user;
 CREATE TABLE audit_log(
 	audit_id INT NULL,
 	method VARCHAR(10) NOT NULL,
