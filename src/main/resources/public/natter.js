@@ -22,3 +22,16 @@ function createSpace(name, owner) {
 	.then(json => console.log('Created space: ', json.name, json.url))
 	.catch(error => console.error('Error: ', error));
 }
+
+window.addEventListener('load', function(e) {
+	document.getElementById('createSpace').addEventListener('submit', processFormSubmit);
+});
+
+function processFormSubmit(e) {
+	e.preventDefault();
+
+	let spaceName = document.getElementById('spaceName').value;
+	let owner = document.getElementById('owner').value;
+
+	return false;
+}
