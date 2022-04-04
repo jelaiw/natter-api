@@ -17,6 +17,9 @@ import com.google.common.util.concurrent.RateLimiter;
 
 public class Main {
 	public static void main(String... args) throws Exception {
+		// Tell Spark to serve static files from /public location.
+		staticFiles.location("/public");
+
 		// See docs at https://sparkjava.com/documentation#embedded-web-server.
 		secure("localhost.p12", "changeit", null, null);
 
