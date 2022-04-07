@@ -1,6 +1,7 @@
 package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
+import com.manning.apisecurityinaction.token.TokenStore;
 import static spark.Spark.*;
 
 import java.nio.file.*;
@@ -40,6 +41,9 @@ public class Main {
 		// Wire up /users post to register a new user.
 		post("/users", userController::registerUser);
 
+		TokenStore tokenStore = null;
+		var tokenController = new TokenController(tokenStore);
+
 		// Authenticate users before all API calls.
 		before(userController::authenticate);
 
@@ -47,6 +51,10 @@ public class Main {
 		var auditController = new AuditController(database);
 		before(auditController::auditRequestStart);
 		afterAfter(auditController::auditRequestEnd);
+
+		// Require authentication for /sessions endpoint.
+		before("/sessions", userController::requireAuthentication);
+		post("/sessions", tokenController::login);
 
 		// Require authentication for /spaces endpoint.
 		before("/spaces", userController::requireAuthentication);
