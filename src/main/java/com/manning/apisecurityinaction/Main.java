@@ -2,6 +2,7 @@ package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.TokenStore;
+import com.manning.apisecurityinaction.token.CookieTokenStore;
 import static spark.Spark.*;
 
 import java.nio.file.*;
@@ -41,7 +42,7 @@ public class Main {
 		// Wire up /users post to register a new user.
 		post("/users", userController::registerUser);
 
-		TokenStore tokenStore = null;
+		TokenStore tokenStore = new CookieTokenStore();
 		var tokenController = new TokenController(tokenStore);
 
 		// Authenticate users before all API calls.
