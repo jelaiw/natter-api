@@ -15,6 +15,15 @@ public class TokenController {
 		this.tokenStore = tokenStore;
 	}
 
+	public void validateToken(Request request, Response response) { // From Listing 4.9.
+		tokenStore.read(request, null).ifPresent(token -> {
+			if (Instant.now().isBefore(token.expiry)) {
+				request.attribute("subject", token.username);
+				token.attributes.forEach(request::attribute);
+			}
+		});
+	}
+
 	public JSONObject login(Request request, Response response) {
 		String subject = request.attribute("subject");
 		// See https://mkyong.com/java/java-how-to-get-current-date-time-date-and-calender/.
