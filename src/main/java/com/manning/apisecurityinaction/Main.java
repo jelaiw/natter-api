@@ -46,7 +46,8 @@ public class Main {
 		var tokenController = new TokenController(tokenStore);
 
 		// Authenticate users before all API calls.
-		before(userController::authenticate);
+		before(userController::authenticate); // HTTP Basic.
+		before(tokenController::validateToken); // Or session cookies.
 
 		// Perform audit logging after authn (but before authz).
 		var auditController = new AuditController(database);
