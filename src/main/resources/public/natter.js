@@ -32,6 +32,7 @@ function processFormSubmit(e) {
 
 	let spaceName = document.getElementById('spaceName').value;
 	let owner = document.getElementById('owner').value;
+	createSpace(spaceName, owner);
 
 	return false;
 }
