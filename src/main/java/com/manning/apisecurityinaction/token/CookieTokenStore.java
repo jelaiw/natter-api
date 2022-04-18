@@ -60,4 +60,20 @@ public class CookieTokenStore implements TokenStore {
 			throw new IllegalStateException(e);
 		}
 	}
+
+	@Override
+	public void revoke(Request request, String tokenId) {
+		var session = request.session(false);
+		if (session == null) return;
+
+		var provided = Base64url.decode(tokenId);
+		var computed = sha256(session.id());
+
+		// See MessageDigest.isEquals() note in read() implementation.
+		if (!MessageDigest.isEqual(computed, provided)) {
+			return;
+		}
+
+		session.invalidate();
+	}
 }
