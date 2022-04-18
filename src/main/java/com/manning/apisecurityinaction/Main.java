@@ -57,6 +57,7 @@ public class Main {
 		// Require authentication for /sessions endpoint.
 		before("/sessions", userController::requireAuthentication);
 		post("/sessions", tokenController::login);
+		delete("/sessions", tokenController::logout);
 
 		// Require authentication for /spaces endpoint.
 		before("/spaces", userController::requireAuthentication);

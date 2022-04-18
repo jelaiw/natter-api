@@ -41,4 +41,16 @@ public class TokenController {
 		response.status(201);
 		return new JSONObject().put("token", tokenId);
 	}
+
+	public JSONObject logout(Request request, Response response) {
+		var tokenId = request.headers("X-CSRF-Token");
+		if (tokenId == null ) {
+			throw new IllegalArgumentException("missing token header");
+		}
+
+		tokenStore.revoke(request, tokenId);
+
+		response.status(200);
+		return new JSONObject();
+	}
 }
