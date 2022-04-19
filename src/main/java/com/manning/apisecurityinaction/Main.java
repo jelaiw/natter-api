@@ -19,6 +19,9 @@ import com.google.common.util.concurrent.RateLimiter;
 
 public class Main {
 	public static void main(String... args) throws Exception {
+		// Parse optional port argument to facilitate simulation of cross-origin requests for local development.
+		port(args.length > 0 ? Integer.parseInt(args[0]) : spark.Service.SPARK_DEFAULT_PORT);
+
 		// Tell Spark to serve static files from /public location.
 		staticFiles.location("/public");
 
