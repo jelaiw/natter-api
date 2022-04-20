@@ -6,6 +6,7 @@ import com.manning.apisecurityinaction.token.CookieTokenStore;
 import static spark.Spark.*;
 
 import java.nio.file.*;
+import java.util.Set;
 
 import org.dalesbred.*;
 import org.h2.jdbcx.*;
@@ -57,6 +58,9 @@ public class Main {
 				halt(429);
 			}
 		});
+
+		// Set up CORS filter with allowed origins.
+		before(new CorsFilter(Set.of("https://localhost:9999")));
 
 		// Authenticate users before all API calls.
 		before(userController::authenticate); // HTTP Basic.
