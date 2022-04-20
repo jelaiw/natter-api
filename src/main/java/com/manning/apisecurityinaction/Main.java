@@ -48,6 +48,16 @@ public class Main {
 		TokenStore tokenStore = new CookieTokenStore();
 		var tokenController = new TokenController(tokenStore);
 
+		// Implement basic rate-limiting.
+		// See https://guava.dev/releases/29.0-jre/api/docs/com/google/common/util/concurrent/RateLimiter.html.
+		var rateLimiter = RateLimiter.create(2.0d);
+		before((request, response) -> {
+			if (!rateLimiter.tryAcquire()) {
+				response.header("Retry-After", "2");
+				halt(429);
+			}
+		});
+
 		// Authenticate users before all API calls.
 		before(userController::authenticate); // HTTP Basic.
 		before(tokenController::validateToken); // Or session cookies.
@@ -93,16 +103,6 @@ public class Main {
 
 		// Wire up /logs get to show audit logs.
 		get("/logs", auditController::readAuditLog);
-
-		// Implement basic rate-limiting.
-		// See https://guava.dev/releases/29.0-jre/api/docs/com/google/common/util/concurrent/RateLimiter.html.
-		var rateLimiter = RateLimiter.create(2.0d);
-		before((request, response) -> {
-			if (!rateLimiter.tryAcquire()) {
-				response.header("Retry-After", "2");
-				halt(429);
-			}
-		});
 
 		// Avoid leaking server information in header. Is there value in a misleading value here?
 		afterAfter((request, response) -> response.header("Server", ""));
