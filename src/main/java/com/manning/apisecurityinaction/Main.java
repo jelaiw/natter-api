@@ -3,6 +3,7 @@ package com.manning.apisecurityinaction;
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.TokenStore;
 import com.manning.apisecurityinaction.token.CookieTokenStore;
+import com.manning.apisecurityinaction.token.DatabaseTokenStore;
 import static spark.Spark.*;
 
 import java.nio.file.*;
@@ -46,7 +47,7 @@ public class Main {
 		// Wire up /users post to register a new user.
 		post("/users", userController::registerUser);
 
-		TokenStore tokenStore = new CookieTokenStore();
+		TokenStore tokenStore = new DatabaseTokenStore(database);
 		var tokenController = new TokenController(tokenStore);
 
 		// Implement basic rate-limiting.
