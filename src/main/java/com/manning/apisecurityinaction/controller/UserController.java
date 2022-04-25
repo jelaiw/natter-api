@@ -44,11 +44,7 @@ public class UserController {
 
 	public void requireAuthentication(Request request, Response response) {
 		if (request.attribute("subject") == null) {
-			// Omit header in preparation for Natter login UI.
-			// A 401 response without a WWW-Authenticate header violates HTTP standard.
-			// See https://datatracker.ietf.org/doc/html/rfc7235#section-3.1.
-			// See chapter 4.5 for further discussion.
-//			response.header("WWW-Authenticate", "Basic realm=\"/\", charset=\"UTF-8\"");
+			response.header("WWW-Authenticate", "Bearer");
 			halt(401);
 		}
 	}
