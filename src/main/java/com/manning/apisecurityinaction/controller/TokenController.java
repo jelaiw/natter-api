@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
+import static spark.Spark.halt;
 import com.manning.apisecurityinaction.token.TokenStore;
 
 public class TokenController {
@@ -16,16 +17,22 @@ public class TokenController {
 	}
 
 	public void validateToken(Request request, Response response) {
-		// Consider request to be unauthenticated without an X-CSRF-Token header.
-		// See chapter 4.4.3 for further detail.
-		var tokenId = request.headers("X-CSRF-Token");
-		if (tokenId == null) return;
+		// Parse Bearer token from Authorization header, see chapter 5.2.2.
+		var tokenId = request.headers("Authorization");
+		if (tokenId == null || !tokenId.startsWith("Bearer ")) {
+			return; // Allows HTTP Basic authn to still work at login endpoint.
+		}
+		tokenId = tokenId.substring(7);
 
-		// Implement hash-based double-submit cookie CSRF protection.
 		tokenStore.read(request, tokenId).ifPresent(token -> {
 			if (Instant.now().isBefore(token.expiry)) {
 				request.attribute("subject", token.username);
 				token.attributes.forEach(request::attribute);
+			}
+			else {
+				response.header("WWW-Authenticate", 
+					"Bearer error=\"invalid_token\",error_description=\"Expired\"");
+				halt(401);
 			}
 		});
 	}
@@ -43,10 +50,12 @@ public class TokenController {
 	}
 
 	public JSONObject logout(Request request, Response response) {
-		var tokenId = request.headers("X-CSRF-Token");
-		if (tokenId == null ) {
+		// See code comments for validateToken().
+		var tokenId = request.headers("Authorization");
+		if (tokenId == null || !tokenId.startsWith("Bearer ")) {
 			throw new IllegalArgumentException("missing token header");
 		}
+		tokenId = tokenId.substring(7);
 
 		tokenStore.revoke(request, tokenId);
 
