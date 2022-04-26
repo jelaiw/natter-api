@@ -60,4 +60,8 @@ public class DatabaseTokenStore implements TokenStore {
 		// Revoke a token on logout by deleting it from the database.
 		database.update("DELETE FROM tokens WHERE token_id = ?", tokenId);
 	}
+
+	public void deleteExpiredTokens() {
+		database.update("DELETE FROM tokens WHERE expiry < current_timestamp");
+	}
 }
