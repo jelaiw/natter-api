@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DatabaseTokenStore implements TokenStore {
 	private final Database database;
@@ -16,6 +18,10 @@ public class DatabaseTokenStore implements TokenStore {
 	public DatabaseTokenStore(Database database) {
 		this.database = database;
 		this.secureRandom = new SecureRandom();
+
+		// Clean up expired tokens every 10 min (after an initial 10-min delay).
+		Executors.newSingleThreadScheduledExecutor()
+			.scheduleAtFixedRate(this::deleteExpiredTokens, 10, 10, TimeUnit.MINUTES);
 	}
 
 	// See chapter 5.2.1 for discussion on how to generate secure token IDs.
