@@ -37,7 +37,7 @@ public class DatabaseTokenStore implements TokenStore {
 		var attrs = new JSONObject(token.attributes).toString();
 
 		database.updateUnique("INSERT INTO tokens(token_id, user_id, expiry, attributes) VALUES (?, ?, ?, ?)",
-			tokenId, token.username, token.expiry, attrs);
+			hash(tokenId), token.username, token.expiry, attrs);
 
 		return tokenId;
 	}
@@ -45,7 +45,7 @@ public class DatabaseTokenStore implements TokenStore {
 	@Override
 	public Optional<Token> read(Request request, String tokenId) {
 		return database.findOptional(this::readToken,
-			"SELECT user_id, expiry, attributes FROM tokens WHERE token_id = ?", tokenId);
+			"SELECT user_id, expiry, attributes FROM tokens WHERE token_id = ?", hash(tokenId));
 	}
 
 	// Helper to reconstruct token from JSON.
@@ -64,10 +64,16 @@ public class DatabaseTokenStore implements TokenStore {
 	@Override
 	public void revoke(Request request, String tokenId) {
 		// Revoke a token on logout by deleting it from the database.
-		database.update("DELETE FROM tokens WHERE token_id = ?", tokenId);
+		database.update("DELETE FROM tokens WHERE token_id = ?", hash(tokenId));
 	}
 
 	public void deleteExpiredTokens() {
 		database.update("DELETE FROM tokens WHERE expiry < current_timestamp");
+	}
+
+	// See chapter 5.3.1 for discussion of hashing database tokens.
+	private String hash(String tokenId) {
+		var hash = CookieTokenStore.sha256(tokenId);
+		return Base64url.encode(hash);
 	}
 }
