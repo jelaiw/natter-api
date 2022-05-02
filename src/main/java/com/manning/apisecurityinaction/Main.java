@@ -4,10 +4,13 @@ import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.TokenStore;
 import com.manning.apisecurityinaction.token.CookieTokenStore;
 import com.manning.apisecurityinaction.token.DatabaseTokenStore;
+import com.manning.apisecurityinaction.token.HmacTokenStore;
 import static spark.Spark.*;
 
 import java.nio.file.*;
 import java.util.Set;
+import java.security.KeyStore;
+import java.io.FileInputStream;
 
 import org.dalesbred.*;
 import org.h2.jdbcx.*;
@@ -47,7 +50,14 @@ public class Main {
 		// Wire up /users post to register a new user.
 		post("/users", userController::registerUser);
 
+		// Load secret key from external keystore.
+		var keyPassword = System.getProperty("keystore.password", "changeit").toCharArray();
+		var keyStore = KeyStore.getInstance("PKCS12");
+		keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
+		var macKey = keyStore.getKey("hmac-key", keyPassword);
+
 		TokenStore tokenStore = new DatabaseTokenStore(database);
+		tokenStore = new HmacTokenStore(tokenStore, macKey);
 		var tokenController = new TokenController(tokenStore);
 
 		// Implement basic rate-limiting.
