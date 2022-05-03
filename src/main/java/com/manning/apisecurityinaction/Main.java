@@ -2,8 +2,7 @@ package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.TokenStore;
-import com.manning.apisecurityinaction.token.CookieTokenStore;
-import com.manning.apisecurityinaction.token.DatabaseTokenStore;
+import com.manning.apisecurityinaction.token.JsonTokenStore;
 import com.manning.apisecurityinaction.token.HmacTokenStore;
 import static spark.Spark.*;
 
@@ -56,7 +55,7 @@ public class Main {
 		keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
 		var macKey = keyStore.getKey("hmac-key", keyPassword);
 
-		TokenStore tokenStore = new DatabaseTokenStore(database);
+		TokenStore tokenStore = new JsonTokenStore();
 		tokenStore = new HmacTokenStore(tokenStore, macKey);
 		var tokenController = new TokenController(tokenStore);
 
