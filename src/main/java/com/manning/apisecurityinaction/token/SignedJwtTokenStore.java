@@ -3,6 +3,7 @@ package com.manning.apisecurityinaction.token;
 import javax.crypto.SecretKey;
 import java.util.Optional;
 import java.util.Date;
+import java.text.ParseException;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.*;
 import spark.Request;
@@ -42,8 +43,30 @@ public class SignedJwtTokenStore implements TokenStore {
 
 	@Override
 	public Optional<Token> read(Request request, String tokenId) {
-		// TODO
-		return Optional.empty();
+		try {
+			var jwt = SignedJWT.parse(tokenId);
+
+			if (!jwt.verify(verifier)) { // Verify HMAC tag (signature).
+				throw new JOSEException("Invalid signature");
+			}
+
+			var claims = jwt.getJWTClaimsSet();
+			// Reject token if audience does not contain our API's base URI.
+			if (!claims.getAudience().contains(audience)) {
+				throw new JOSEException("Incorrect audience");
+			}
+
+			var expiry = claims.getExpirationTime().toInstant();
+			var subject = claims.getSubject();
+			var token = new Token(expiry, subject);
+			var attrs = claims.getJSONObjectClaim("attrs");
+			attrs.forEach((key, value) -> token.attributes.put(key, (String) value));
+
+			return Optional.of(token);
+		}
+		catch (ParseException | JOSEException e) {
+			return Optional.empty();
+		}
 	}
 
 	@Override
