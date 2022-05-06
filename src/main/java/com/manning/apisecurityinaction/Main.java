@@ -2,7 +2,8 @@ package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.TokenStore;
-import com.manning.apisecurityinaction.token.SignedJwtTokenStore;
+import com.manning.apisecurityinaction.token.JsonTokenStore;
+import com.manning.apisecurityinaction.token.EncryptedTokenStore;
 import static spark.Spark.*;
 
 import javax.crypto.SecretKey;
@@ -19,9 +20,7 @@ import org.dalesbred.result.EmptyResultException;
 import spark.Request;
 import spark.Response;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
+import software.pando.crypto.nacl.SecretBox;
 
 import com.google.common.util.concurrent.RateLimiter;
 
@@ -58,12 +57,10 @@ public class Main {
 		var keyStore = KeyStore.getInstance("PKCS12");
 		keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
 		var macKey = keyStore.getKey("hmac-key", keyPassword);
+		var encKey = keyStore.getKey("aes-key", keyPassword);
 
-		var algorithm = JWSAlgorithm.HS256;
-		var signer = new MACSigner((SecretKey) macKey);
-		var verifier = new MACVerifier((SecretKey) macKey);
-
-		TokenStore tokenStore = new SignedJwtTokenStore(signer, verifier, algorithm, "https://localhost:4567");
+		var naclKey = SecretBox.key(encKey.getEncoded());
+		TokenStore tokenStore = new EncryptedTokenStore(new JsonTokenStore(), naclKey);
 		var tokenController = new TokenController(tokenStore);
 
 		// Implement basic rate-limiting.
