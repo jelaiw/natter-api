@@ -8,13 +8,22 @@ import java.security.GeneralSecurityException;
 import java.nio.charset.StandardCharsets;
 import spark.Request;
 
-public class HmacTokenStore implements TokenStore {
+public class HmacTokenStore implements SecureTokenStore {
 	private final TokenStore delegate;
 	private final Key macKey;
 
-	public HmacTokenStore(TokenStore delegate, Key macKey) {
+	private HmacTokenStore(TokenStore delegate, Key macKey) {
 		this.delegate = delegate;
 		this.macKey = macKey;
+	}
+
+	// See chapter 6.4 for further detail regarding these factory methods for secure API design.
+	public static SecureTokenStore wrap(ConfidentialTokenStore store, Key macKey) {
+		return new HmacTokenStore(store, macKey);
+	}
+
+	public static AuthenticatedTokenStore wrap(TokenStore store, Key macKey) {
+		return new HmacTokenStore(store, macKey);
 	}
 
 	@Override
