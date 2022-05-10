@@ -11,7 +11,7 @@ import com.nimbusds.jose.crypto.*;
 import com.nimbusds.jwt.*;
 import spark.Request;
 
-public class EncryptedJwtTokenStore implements TokenStore {
+public class EncryptedJwtTokenStore implements SecureTokenStore {
 	private final SecretKey encKey;
 
 	public EncryptedJwtTokenStore(SecretKey encKey) {

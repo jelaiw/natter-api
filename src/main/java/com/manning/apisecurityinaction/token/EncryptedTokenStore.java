@@ -6,7 +6,7 @@ import java.security.Key;
 import software.pando.crypto.nacl.SecretBox;
 import spark.Request;
 
-public class EncryptedTokenStore implements TokenStore {
+public class EncryptedTokenStore implements SecureTokenStore {
 	private final TokenStore delegate;
 	private final Key encryptionKey;
 
