@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import spark.Request;
 
-public class CookieTokenStore implements TokenStore {
+public class CookieTokenStore implements SecureTokenStore {
 	@Override
 	public String create(Request request, Token token) {
 		// WARNING: Vulnerable to session fixation attack.
