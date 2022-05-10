@@ -8,7 +8,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jwt.*;
 import spark.Request;
 
-public class SignedJwtTokenStore implements TokenStore {
+public class SignedJwtTokenStore implements AuthenticatedTokenStore {
 	private final JWSSigner signer;
 	private final JWSVerifier verifier;
 	private final JWSAlgorithm algorithm;
