@@ -1,7 +1,7 @@
 package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
-import com.manning.apisecurityinaction.token.TokenStore;
+import com.manning.apisecurityinaction.token.SecureTokenStore;
 import com.manning.apisecurityinaction.token.EncryptedJwtTokenStore;
 import static spark.Spark.*;
 
@@ -58,7 +58,7 @@ public class Main {
 		var macKey = keyStore.getKey("hmac-key", keyPassword);
 		var encKey = keyStore.getKey("aes-key", keyPassword);
 
-		TokenStore tokenStore = new EncryptedJwtTokenStore((SecretKey) encKey);
+		SecureTokenStore tokenStore = new EncryptedJwtTokenStore((SecretKey) encKey);
 		var tokenController = new TokenController(tokenStore);
 
 		// Implement basic rate-limiting.

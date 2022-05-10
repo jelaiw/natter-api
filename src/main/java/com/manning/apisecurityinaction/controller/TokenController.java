@@ -8,11 +8,12 @@ import spark.Request;
 import spark.Response;
 import static spark.Spark.halt;
 import com.manning.apisecurityinaction.token.TokenStore;
+import com.manning.apisecurityinaction.token.SecureTokenStore;
 
 public class TokenController {
-	private final TokenStore tokenStore;
+	private final SecureTokenStore tokenStore;
 
-	public TokenController(TokenStore tokenStore) {
+	public TokenController(SecureTokenStore tokenStore) {
 		this.tokenStore = tokenStore;
 	}
 
