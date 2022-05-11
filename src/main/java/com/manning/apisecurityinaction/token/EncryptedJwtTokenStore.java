@@ -13,14 +13,21 @@ import spark.Request;
 
 public class EncryptedJwtTokenStore implements SecureTokenStore {
 	private final SecretKey encKey;
+	private final DatabaseTokenStore tokenAllowList;
 
-	public EncryptedJwtTokenStore(SecretKey encKey) {
+	public EncryptedJwtTokenStore(SecretKey encKey, DatabaseTokenStore tokenAllowList) {
 		this.encKey = encKey;
+		this.tokenAllowList = tokenAllowList;
 	}
 
 	@Override
 	public String create(Request request, Token token) {
+		// Clever re-use of DatabaseTokenStore for hybrid tokens desribed in chapter 6.5.1.
+		var allowListToken = new Token(token.expiry, token.username);
+		var jwtId = tokenAllowList.create(request, allowListToken);
+
 		var claimsBuilder = new JWTClaimsSet.Builder()
+			.jwtID(jwtId) // jti claim.
 			.subject(token.username)
 			.audience("https://localhost:4567")
 			.expirationTime(Date.from(token.expiry));
@@ -50,10 +57,15 @@ public class EncryptedJwtTokenStore implements SecureTokenStore {
 			jwt.decrypt(decrypter);
 
 			var claims = jwt.getJWTClaimsSet();
+			// Check if allowlist token has been revoked.
+			var jwtId = claims.getJWTID();
+			if (tokenAllowList.read(request, jwtId).isEmpty()) {
+				return Optional.empty();
+			}
+			// Validate other claims.
 			if (!claims.getAudience().contains("https://localhost:4567")) {
 				return Optional.empty();
 			}
-
 			var expiry = claims.getExpirationTime().toInstant();
 			var subject = claims.getSubject();
 			var token = new Token(expiry, subject);
@@ -72,6 +84,17 @@ public class EncryptedJwtTokenStore implements SecureTokenStore {
 
 	@Override
 	public void revoke(Request request, String tokenId) {
-		// TODO
+		try {
+			// Parse, decrypt, and validate JWT the usual way.
+			var jwt = EncryptedJWT.parse(tokenId);
+			var decrypter = new DirectDecrypter(encKey);
+			jwt.decrypt(decrypter);
+			var claims = jwt.getJWTClaimsSet();
+			// Revoke JWT ID from database (allow list).
+			tokenAllowList.revoke(request, claims.getJWTID());
+		}
+		catch (ParseException | JOSEException e) {
+			throw new IllegalArgumentException("invalid token", e);
+		}
 	}
 }
