@@ -11,6 +11,8 @@ import com.manning.apisecurityinaction.token.TokenStore;
 import com.manning.apisecurityinaction.token.SecureTokenStore;
 
 public class TokenController {
+	private static final String DEFAULT_SCOPES =
+		"create_space post_message read_message list_messages delete_message add_member";
 	private final SecureTokenStore tokenStore;
 
 	public TokenController(SecureTokenStore tokenStore) {
@@ -44,6 +46,8 @@ public class TokenController {
 		var expiry = Instant.now().plus(8, ChronoUnit.MINUTES);
 
 		var token = new TokenStore.Token(expiry, subject);
+		var scope = request.queryParamOrDefault("scope", DEFAULT_SCOPES);
+		token.attributes.put("scope", scope);
 		var tokenId = tokenStore.create(request, token);
 
 		response.status(201);
