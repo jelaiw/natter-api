@@ -119,10 +119,10 @@ public class Main {
 
 		// Wire up add member with read permission.
 		// WARNING: This permits privilege escalation.
-		before("/spaces/:spaceId/members", userController.requirePermission("POST", "r"));
+//		before("/spaces/:spaceId/members", userController.requirePermission("POST", "r"));
 		// Prevent privilege escalation by requiring owner (or moderator) permissions.
-		// See section 3.6.5 for further detail.
-//		before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"));
+		// See chapter 3.6.5 for further detail.
+		before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"));
 		before("/spaces/*/members", tokenController.requireScope("POST", "add_member"));
 		post("/spaces/:spaceId/members", spaceController::addMember);
 
