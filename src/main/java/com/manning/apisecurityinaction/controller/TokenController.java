@@ -2,10 +2,12 @@ package com.manning.apisecurityinaction.controller;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
+import spark.Filter;
 import static spark.Spark.halt;
 import com.manning.apisecurityinaction.token.TokenStore;
 import com.manning.apisecurityinaction.token.SecureTokenStore;
@@ -17,6 +19,26 @@ public class TokenController {
 
 	public TokenController(SecureTokenStore tokenStore) {
 		this.tokenStore = tokenStore;
+	}
+
+	public Filter requireScope(String method, String requiredScope) {
+		return (request, response) -> {
+			if (!method.equalsIgnoreCase(request.requestMethod())) {
+				return; // Ignore filter if HTTP method doesn't match request.
+			}
+			// If token is unscoped (then user directly authenticated the request with Basic authentication).
+			// Any client with access to user password could issue themselves a token with any scope.
+			// So we skip the scope check filter and allow the request to proceed.
+			var tokenScope = request.<String>attribute("scope");
+			if (tokenScope == null) return;
+			// See Bearer authentication scheme for further detail regarding dedicated error code.
+			// Also, see chapter 7.1.1.
+			if (!Set.of(tokenScope.split(" ")).contains(requiredScope)) {
+				response.header("WWW-Authenticate",
+					"Bearer error=\"insufficient_scope\",scope=\"" + requiredScope + "\"");
+				halt(403);
+			}
+		};
 	}
 
 	public void validateToken(Request request, Response response) {
