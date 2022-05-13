@@ -45,8 +45,6 @@ public class Main {
 		database = Database.forDataSource(datasource);
 
 		var spaceController = new SpaceController(database);
-		// Wire up /spaces post to create a new space.
-		post("/spaces", spaceController::createSpace);
 
 		var userController = new UserController(database);
 		// Wire up /users post to register a new user.
@@ -87,28 +85,36 @@ public class Main {
 
 		// Require authentication for /sessions endpoint.
 		before("/sessions", userController::requireAuthentication);
+		before("/sessions", tokenController.requireScope("POST", "full_access")); // LOOK!! Too clever. :-D
 		post("/sessions", tokenController::login);
 		delete("/sessions", tokenController::logout);
 
 		// Require authentication for /spaces endpoint.
 		before("/spaces", userController::requireAuthentication);
+		before("/spaces", tokenController.requireScope("POST", "create_space"));
+		// Wire up /spaces post to create a new space.
+		post("/spaces", spaceController::createSpace);
 
 		// Wire up post message with write permission.
 		before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
+		before("/spaces/*/messages", tokenController.requireScope("POST", "post_message"));
 		post("/spaces/:spaceId/messages", spaceController::postMessage);
 
 		// Wire up read message with read permission.
 		before("/spaces/:spaceId/messages/*", userController.requirePermission("GET", "r"));
+		before("/spaces/*/messages/*", tokenController.requireScope("GET", "read_message"));
 		get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
 
 		// Wire up find messages with write permission.
 		before("/spaces/:spaceId/messages", userController.requirePermission("GET", "r"));
+		before("/spaces/*/messages", tokenController.requireScope("GET", "list_messages"));
 		get("/spaces/:spaceId/messages", spaceController::findMessages);
 
 		var moderatorController = new ModeratorController(database);
 
 		// Wire up delete post with delete permission.
 		before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"));
+		before("/spaces/*/messages/*", tokenController.requireScope("DELETE", "delete_message"));
 		delete("/spaces/:spaceId/messages/:msgId", moderatorController::deletePost);
 
 		// Wire up add member with read permission.
@@ -117,6 +123,7 @@ public class Main {
 		// Prevent privilege escalation by requiring owner (or moderator) permissions.
 		// See section 3.6.5 for further detail.
 //		before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"));
+		before("/spaces/*/members", tokenController.requireScope("POST", "add_member"));
 		post("/spaces/:spaceId/members", spaceController::addMember);
 
 		// Wire up /logs get to show audit logs.
