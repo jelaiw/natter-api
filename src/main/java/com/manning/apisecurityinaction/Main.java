@@ -2,8 +2,7 @@ package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.SecureTokenStore;
-import com.manning.apisecurityinaction.token.EncryptedJwtTokenStore;
-import com.manning.apisecurityinaction.token.DatabaseTokenStore;
+import com.manning.apisecurityinaction.token.OAuth2TokenStore;
 import static spark.Spark.*;
 
 import javax.crypto.SecretKey;
@@ -11,6 +10,7 @@ import java.nio.file.*;
 import java.util.Set;
 import java.security.KeyStore;
 import java.io.FileInputStream;
+import java.net.URI;
 
 import org.dalesbred.*;
 import org.h2.jdbcx.*;
@@ -57,8 +57,10 @@ public class Main {
 		var macKey = keyStore.getKey("hmac-key", keyPassword);
 		var encKey = keyStore.getKey("aes-key", keyPassword);
 
-		SecureTokenStore tokenStore = 
-			new EncryptedJwtTokenStore((SecretKey) encKey, new DatabaseTokenStore(database));
+		var introspectionEndpoint = URI.create("https://as.example.com:8443/oauth2/introspect");
+		String clientId = "test"; // See Appendix A for further context.
+		String clientSecret = "password";
+		SecureTokenStore tokenStore = new OAuth2TokenStore(introspectionEndpoint, clientId, clientSecret);
 		var tokenController = new TokenController(tokenStore);
 
 		// Implement basic rate-limiting.
