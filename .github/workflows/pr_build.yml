@@ -1,0 +1,15 @@
+name: "Pull request build"
+on: pull_request
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # See https://github.com/marketplace/actions/setup-java-jdk#usage.
+      - name: Set up JDK.
+        uses: actions/setup-java@v3
+        with: 
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build with Maven
+        run: mvn clean compile
