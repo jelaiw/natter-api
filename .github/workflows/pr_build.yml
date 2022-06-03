@@ -1,6 +1,13 @@
 name: "Pull request build"
 # See https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#using-multiple-events for syntax.
-on: [ pull_request, push, workflow_dispatch ]
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
