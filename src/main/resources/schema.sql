@@ -39,6 +39,14 @@ CREATE TABLE role_permissions(
 INSERT INTO role_permissions(role_id, perms)
 	VALUES ('owner', 'rwd'), ('moderator', 'rd'), ('member', 'rw'), ('observer', 'r');
 GRANT SELECT, INSERT ON role_permissions TO natter_api_user;
+CREATE TABLE user_roles(
+	space_id INT NOT NULL REFERENCES spaces(space_id),
+	user_id VARCHAR(30) NOT NULL REFERENCES users(user_id),
+	role_id VARCHAR(30) NOT NULL REFERENCES role_permissions(role_id),
+	PRIMARY KEY (space_id, user_id)
+);
+GRANT SELECT, INSERT, DELETE ON user_roles TO natter_api_user;
+CREATE TABLE user_roles(
 CREATE TABLE tokens(
 	token_id VARCHAR(100) PRIMARY KEY,
 	user_id VARCHAR(30) NOT NULL,
