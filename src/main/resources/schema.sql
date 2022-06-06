@@ -38,7 +38,7 @@ CREATE TABLE role_permissions(
 );
 INSERT INTO role_permissions(role_id, perms)
 	VALUES ('owner', 'rwd'), ('moderator', 'rd'), ('member', 'rw'), ('observer', 'r');
-GRANT SELECT, INSERT ON role_permissions TO natter_api_user;
+GRANT SELECT ON role_permissions TO natter_api_user;
 CREATE TABLE user_roles(
 	space_id INT NOT NULL REFERENCES spaces(space_id),
 	user_id VARCHAR(30) NOT NULL REFERENCES users(user_id),
