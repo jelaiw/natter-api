@@ -97,6 +97,11 @@ public class Main {
 		// Wire up /spaces post to create a new space.
 		post("/spaces", spaceController::createSpace);
 
+		// Make sure permissions are looked up first.
+		before("/spaces/:spaceId/messages", userController::lookupPermissions);
+		before("/spaces/:spaceId/messages/*", userController::lookupPermissions);
+		before("/spaces/:spaceId/members", userController::lookupPermissions);
+
 		// Wire up post message with write permission.
 		before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
 		before("/spaces/*/messages", tokenController.requireScope("POST", "post_message"));
