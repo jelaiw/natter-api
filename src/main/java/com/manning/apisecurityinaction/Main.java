@@ -85,6 +85,10 @@ public class Main {
 		before(auditController::auditRequestStart);
 		afterAfter(auditController::auditRequestEnd);
 
+		// Apply ABAC via Drools rule file before other access control rules.
+		var droolsController = new DroolsAccessController();
+		before("/*", droolsController::enforcePolicy);
+
 		// Require authentication for /sessions endpoint.
 		before("/sessions", userController::requireAuthentication);
 		before("/sessions", tokenController.requireScope("POST", "full_access")); // LOOK!! Too clever. :-D
