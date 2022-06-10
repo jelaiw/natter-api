@@ -34,7 +34,7 @@ CREATE SEQUENCE audit_id_seq;
 GRANT SELECT, INSERT ON audit_log TO natter_api_user;
 CREATE TABLE role_permissions(
 	role_id VARCHAR(30) NOT NULL PRIMARY KEY,
-	perms VARCHAR(3) NOT NULL,
+	perms VARCHAR(3) NOT NULL
 );
 INSERT INTO role_permissions(role_id, perms)
 	VALUES ('owner', 'rwd'), ('moderator', 'rd'), ('member', 'rw'), ('observer', 'r');
@@ -46,7 +46,6 @@ CREATE TABLE user_roles(
 	PRIMARY KEY (space_id, user_id)
 );
 GRANT SELECT, INSERT, DELETE ON user_roles TO natter_api_user;
-CREATE TABLE user_roles(
 CREATE TABLE tokens(
 	token_id VARCHAR(100) PRIMARY KEY,
 	user_id VARCHAR(30) NOT NULL,
