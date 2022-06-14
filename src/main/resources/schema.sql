@@ -47,8 +47,8 @@ CREATE TABLE user_roles(
 );
 GRANT SELECT, INSERT, DELETE ON user_roles TO natter_api_user;
 CREATE TABLE tokens(
-	token_id VARCHAR(100) PRIMARY KEY,
-	user_id VARCHAR(30) NOT NULL,
+	token_id VARCHAR(30) PRIMARY KEY,
+	user_id VARCHAR(30) REFERENCES users(user_id),
 	expiry TIMESTAMP NOT NULL,
 	attributes VARCHAR(4096) NOT NULL
 );
