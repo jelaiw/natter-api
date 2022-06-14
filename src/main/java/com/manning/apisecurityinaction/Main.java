@@ -90,8 +90,8 @@ public class Main {
 		afterAfter(auditController::auditRequestEnd);
 
 		// Apply ABAC via Drools rule file before other access control rules.
-		var droolsController = new DroolsAccessController();
-		before("/*", droolsController::enforcePolicy);
+//		var droolsController = new DroolsAccessController();
+//		before("/*", droolsController::enforcePolicy);
 
 		// Require authentication for /sessions endpoint.
 		before("/sessions", userController::requireAuthentication);
@@ -106,9 +106,9 @@ public class Main {
 		post("/spaces", spaceController::createSpace);
 
 		// Make sure permissions are looked up first.
-		before("/spaces/:spaceId/messages", userController::lookupPermissions);
-		before("/spaces/:spaceId/messages/*", userController::lookupPermissions);
-		before("/spaces/:spaceId/members", userController::lookupPermissions);
+		before("/spaces/:spaceId/messages", capController::lookupPermissions);
+		before("/spaces/:spaceId/messages/*", capController::lookupPermissions);
+		before("/spaces/:spaceId/members", capController::lookupPermissions);
 
 		// Wire up post message with write permission.
 		before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
