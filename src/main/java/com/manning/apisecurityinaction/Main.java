@@ -2,6 +2,8 @@ package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.SecureTokenStore;
+import com.manning.apisecurityinaction.token.DatabaseTokenStore;
+import com.manning.apisecurityinaction.token.HmacTokenStore;
 import com.manning.apisecurityinaction.token.OAuth2TokenStore;
 import static spark.Spark.*;
 
@@ -44,18 +46,20 @@ public class Main {
 			"jdbc:h2:mem:natter", "natter_api_user", "password");
 		database = Database.forDataSource(datasource);
 
-		var spaceController = new SpaceController(database);
-
-		var userController = new UserController(database);
-		// Wire up /users post to register a new user.
-		post("/users", userController::registerUser);
-
 		// Load secret key from external keystore.
 		var keyPassword = System.getProperty("keystore.password", "changeit").toCharArray();
 		var keyStore = KeyStore.getInstance("PKCS12");
 		keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
 		var macKey = keyStore.getKey("hmac-key", keyPassword);
 		var encKey = keyStore.getKey("aes-key", keyPassword);
+
+		// Use DatabaseTokenStore because it creates short tokens (and therefore short capability URIs).
+		var capController = new CapabilityController(HmacTokenStore.wrap(new DatabaseTokenStore(database), macKey));
+		var spaceController = new SpaceController(database, capController);
+
+		var userController = new UserController(database);
+		// Wire up /users post to register a new user.
+		post("/users", userController::registerUser);
 
 		var introspectionEndpoint = URI.create("https://as.example.com:8443/oauth2/introspect");
 		String clientId = "test"; // See Appendix A for further context.

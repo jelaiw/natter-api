@@ -5,16 +5,20 @@ import org.json.*;
 import spark.*;
 
 import java.time.Instant;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 import java.util.Set;
 
 public class SpaceController {
 	private static final Set<String> DEFINED_ROLES = Set.of("owner", "moderator", "member", "observer");
-	private final Database database;
 
-	public SpaceController(Database database) {
+	private final Database database;
+	private final CapabilityController capController;
+
+	public SpaceController(Database database, CapabilityController capController) {
 		this.database = database;
+		this.capController = capController;
 	}
 
 	public JSONObject createSpace(Request request, Response response) {
@@ -51,17 +55,23 @@ public class SpaceController {
 			*/
 
 			// Assign owner role to space owner.
+			// Comment out for capabilities exercise, see Listing 9.3 for further context.
+			/*
 			database.updateUnique(
 				"INSERT INTO user_roles(space_id, user_id, role_id) VALUES (?, ?, ?)",
 				spaceId, owner, "owner");
+			*/
+
+			var expiry = Duration.ofDays(999);
+			var uri = capController.createUri(request, "/spaces/" + spaceId, "rwd", expiry);
 
 			// Set response headers.
 			response.status(201);
-			response.header("Location", "/spaces/" + spaceId);
+			response.header("Location", uri.toASCIIString());
 
 			return new JSONObject()
 				.put("name", spaceName)
-				.put("uri", "/spaces/" + spaceId);
+				.put("uri", uri);
 		});
 	}
 
