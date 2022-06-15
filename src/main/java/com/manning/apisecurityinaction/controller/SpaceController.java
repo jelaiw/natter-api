@@ -64,6 +64,7 @@ public class SpaceController {
 
 			var expiry = Duration.ofDays(999);
 			var uri = capController.createUri(request, "/spaces/" + spaceId, "rwd", expiry);
+			var messagesUri = capController.createUri(request, "/spaces/" + spaceId + "/messages", "rwd", expiry);
 
 			// Set response headers.
 			response.status(201);
@@ -71,7 +72,8 @@ public class SpaceController {
 
 			return new JSONObject()
 				.put("name", spaceName)
-				.put("uri", uri);
+				.put("uri", uri)
+				.put("messages", messagesUri);
 		});
 	}
 
