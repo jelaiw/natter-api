@@ -138,9 +138,13 @@ public class SpaceController {
             "WHERE space_id = ? AND msg_time >= ?;",
         spaceId, since);
 
+	// Always base permissions on permissions set for current request.
+	var perms = request.<String>attribute("perms").replace("w", "");
+	var expiry = Duration.ofDays(999);
     response.status(200);
     return new JSONArray(messages.stream()
         .map(msgId -> "/spaces/" + spaceId + "/messages/" + msgId)
+		.map(path -> capController.createUri(request, path, perms, expiry))
         .collect(Collectors.toList()));
   }
 
