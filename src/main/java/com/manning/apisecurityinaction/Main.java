@@ -4,7 +4,7 @@ import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.SecureTokenStore;
 import com.manning.apisecurityinaction.token.DatabaseTokenStore;
 import com.manning.apisecurityinaction.token.HmacTokenStore;
-import com.manning.apisecurityinaction.token.OAuth2TokenStore;
+import com.manning.apisecurityinaction.token.CookieTokenStore;
 import static spark.Spark.*;
 
 import javax.crypto.SecretKey;
@@ -61,10 +61,7 @@ public class Main {
 		// Wire up /users post to register a new user.
 		post("/users", userController::registerUser);
 
-		var introspectionEndpoint = URI.create("https://as.example.com:8443/oauth2/introspect");
-		String clientId = "test"; // See Appendix A for further context.
-		String clientSecret = "password";
-		SecureTokenStore tokenStore = new OAuth2TokenStore(introspectionEndpoint, clientId, clientSecret);
+		SecureTokenStore tokenStore = new CookieTokenStore();
 		var tokenController = new TokenController(tokenStore);
 
 		// Implement basic rate-limiting.
