@@ -19,11 +19,14 @@ public class CapabilityController {
 	}
 
 	public URI createUri(Request request, String path, String perms, Duration expiryDuration) {
-		// Set username field to null because capabilities are not tied to an individual user account.
-		var token = new Token(now().plus(expiryDuration), null);
+		// Associate capability token with an authenticated user to harden capabilities.
+		var subject = (String) request.attribute("subject");
+		var token = new Token(now().plus(expiryDuration), subject);
 		token.attributes.put("path", path);
 		token.attributes.put("perms", perms);
+
 		var tokenId = tokenStore.create(request, token);
+
 		var uri = URI.create(request.uri());
 		// Add token to URI as a query parameter, per RFC 6750.
 		return uri.resolve(path + "?access_token=" + tokenId);
@@ -36,6 +39,11 @@ public class CapabilityController {
 		}
 
 		tokenStore.read(request, tokenId).ifPresent(token -> {
+			// Ensure capability can't be used without a matching user session.
+			if (!Objects.equals(token.username, request.attribute("subject"))) {
+				return;
+			}
+
 			var tokenPath = token.attributes.get("path");
 			if (Objects.equals(tokenPath, request.pathInfo())) {
 				request.attribute("perms", token.attributes.get("perms"));
