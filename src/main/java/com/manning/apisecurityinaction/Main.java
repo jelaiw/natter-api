@@ -107,6 +107,9 @@ public class Main {
 		before("/spaces/:spaceId/messages/*", capController::lookupPermissions);
 		before("/spaces/:spaceId/members", capController::lookupPermissions);
 
+		// Wire up capability sharing endpoint. See chapter 9.2.6 for further detail.
+		post("/capabilities", capController::share);
+
 		// Wire up post message with write permission.
 		before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
 		before("/spaces/*/messages", tokenController.requireScope("POST", "post_message"));
