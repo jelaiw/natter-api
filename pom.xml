@@ -73,5 +73,10 @@
       <artifactId>drools-compiler</artifactId>
       <version>7.26.0.Final</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.nitram509</groupId>
+      <artifactId>jmacaroons</artifactId>
+      <version>0.4.1</version>
+    </dependency>
   </dependencies>
 </project>
