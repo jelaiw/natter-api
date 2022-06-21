@@ -3,7 +3,7 @@ package com.manning.apisecurityinaction;
 import com.manning.apisecurityinaction.controller.*;
 import com.manning.apisecurityinaction.token.SecureTokenStore;
 import com.manning.apisecurityinaction.token.DatabaseTokenStore;
-import com.manning.apisecurityinaction.token.HmacTokenStore;
+import com.manning.apisecurityinaction.token.MacaroonTokenStore;
 import com.manning.apisecurityinaction.token.CookieTokenStore;
 import static spark.Spark.*;
 
@@ -54,7 +54,7 @@ public class Main {
 		var encKey = keyStore.getKey("aes-key", keyPassword);
 
 		// Use DatabaseTokenStore because it creates short tokens (and therefore short capability URIs).
-		var capController = new CapabilityController(HmacTokenStore.wrap(new DatabaseTokenStore(database), macKey));
+		var capController = new CapabilityController(MacaroonTokenStore.wrap(new DatabaseTokenStore(database), macKey));
 		var spaceController = new SpaceController(database, capController);
 
 		var userController = new UserController(database);
