@@ -41,6 +41,7 @@ public class MacaroonTokenStore implements SecureTokenStore {
 		var macaroon = MacaroonsBuilder.deserialize(tokenId);
 		var verifier = new MacaroonsVerifier(macaroon);
 		verifier.satisfyGeneral(new TimestampCaveatVerifier());
+		verifier.satisfyExact("method = " + request.requestMethod());
 		if (verifier.isValid(macKey.getEncoded())) {
 			return delegate.read(request, macaroon.identifier);
 		}
