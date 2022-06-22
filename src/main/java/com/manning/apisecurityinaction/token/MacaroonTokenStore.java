@@ -5,6 +5,7 @@ import java.security.Key;
 
 import com.github.nitram509.jmacaroons.MacaroonsBuilder;
 import com.github.nitram509.jmacaroons.MacaroonsVerifier;
+import com.github.nitram509.jmacaroons.verifier.TimestampCaveatVerifier;
 import spark.Request;
 
 public class MacaroonTokenStore implements SecureTokenStore {
@@ -39,6 +40,7 @@ public class MacaroonTokenStore implements SecureTokenStore {
 	public Optional<Token> read(Request request, String tokenId) {
 		var macaroon = MacaroonsBuilder.deserialize(tokenId);
 		var verifier = new MacaroonsVerifier(macaroon);
+		verifier.satisfyGeneral(new TimestampCaveatVerifier());
 		if (verifier.isValid(macKey.getEncoded())) {
 			return delegate.read(request, macaroon.identifier);
 		}
