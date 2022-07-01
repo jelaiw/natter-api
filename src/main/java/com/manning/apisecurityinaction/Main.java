@@ -34,16 +34,15 @@ public class Main {
 		// Tell Spark to serve static files from /public location.
 		staticFiles.location("/public");
 
-		// See docs at https://sparkjava.com/documentation#embedded-web-server.
-		secure("localhost.p12", "changeit", null, null);
+		// Enable TLS, see docs at https://sparkjava.com/documentation#embedded-web-server.
+//		secure("localhost.p12", "changeit", null, null);
 
-		var datasource = JdbcConnectionPool.create(
-			"jdbc:h2:mem:natter", "natter", "password");
+		var jdbcUrl = "jdbc:h2:tcp://natter-database-service:9092/mem:natter";
+		var datasource = JdbcConnectionPool.create(jdbcUrl, "natter", "password");
 		var database = Database.forDataSource(datasource);
 		createTables(database);
 		// Implement least privilege with natter_api_user.
-		datasource = JdbcConnectionPool.create(
-			"jdbc:h2:mem:natter", "natter_api_user", "password");
+		datasource = JdbcConnectionPool.create(jdbcUrl, "natter_api_user", "password");
 		database = Database.forDataSource(datasource);
 
 		// Load secret key from external keystore.
