@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 import java.net.http.HttpClient;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -148,6 +149,18 @@ public class SpaceController {
         "SELECT space_id, msg_id, author, msg_time, msg_text " +
             "FROM messages WHERE msg_id = ? AND space_id = ?",
         msgId, spaceId);
+
+	var linkPattern = Pattern.compile("https?://\\S+");
+	var matcher = linkPattern.matcher(message.message);
+	int start = 0;
+	while (matcher.find(start)) {
+		var url = matcher.group();
+		var preview = fetchLinkPreview(url);
+		if (preview != null) {
+			message.links.add(preview);
+		}
+		start = matcher.end();
+	}
 
     response.status(200);
     return message;
