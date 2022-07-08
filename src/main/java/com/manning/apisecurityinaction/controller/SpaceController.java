@@ -9,6 +9,14 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.net.http.HttpClient;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 
 public class SpaceController {
 	private static final Set<String> DEFINED_ROLES = Set.of("owner", "moderator", "member", "observer");
@@ -16,9 +24,28 @@ public class SpaceController {
 	private final Database database;
 	private final CapabilityController capController;
 
+	private final HttpClient httpClient = HttpClient.newHttpClient();
+	private final URI linkPreviewService = URI.create("http://natter-link-preview-service:4567");
+
 	public SpaceController(Database database, CapabilityController capController) {
 		this.database = database;
 		this.capController = capController;
+	}
+
+	private JSONObject fetchLinkPreview(String link) {
+		var url = linkPreviewService.resolve("/preview?url="
+			+ URLEncoder.encode(link, StandardCharsets.UTF_8));
+		var request = HttpRequest.newBuilder(url).GET().build();
+
+		try {
+			var response = httpClient.send(request, BodyHandlers.ofString());
+			if (response.statusCode() == 200) {
+				return new JSONObject(response.body());
+			}
+		}
+		catch (Exception e) { // Ignore any thrown exceptions.
+		}
+		return null;
 	}
 
 	public JSONObject createSpace(Request request, Response response) {
@@ -174,6 +201,7 @@ public class SpaceController {
     private final String author;
     private final Instant time;
     private final String message;
+	private final List<JSONObject> links = new ArrayList<>();
 
     public Message(long spaceId, long msgId, String author,
         Instant time, String message) {
@@ -191,6 +219,7 @@ public class SpaceController {
       msg.put("author", author);
       msg.put("time", time.toString());
       msg.put("message", message);
+      msg.put("links", links);
       return msg.toString();
     }
   }
