@@ -13,6 +13,9 @@ import java.net.UnknownHostException;
 import java.net.URI;
 import java.net.InetAddress;
 import java.net.Inet6Address;
+import java.io.IOException;
+import org.jsoup.nodes.Document;
+import static org.jsoup.Connection.Method.GET;
 
 public class LinkPreviewer {
 	private static final Logger logger = LoggerFactory.getLogger(LinkPreviewer.class);
@@ -33,16 +36,34 @@ public class LinkPreviewer {
 			&& (ipAddr.getAddress()[1] & 0xFF) == 0x00;
 	}
 
+	private static Document fetch(String url) throws IOException {
+		Document doc = null;
+		int retries = 0;
+		// Loop until URL resolves to a document. Limit number of redirects.
+		while (doc == null && retries++ < 9) {
+			if (isBlockedAddress(url)) {
+				throw new IllegalArgumentException("URL refers to local/private address");
+			}
+			// Disable automatic redirect handling in Jsoup.
+			var response = Jsoup.connect(url).followRedirects(false).timeout(2999).method(GET).execute();
+			if (response.statusCode() / 100 == 3) {
+				url = response.header("Location");
+			}
+			else {
+				doc = response.parse();
+			}
+		}
+		if (doc == null) throw new IOException("too many redirects");
+		return doc;
+	}
+
 	public static void main(String...args) {
 		afterAfter((request, response) -> {
 			response.type("application/json; charset=utf-8");
 		});
 		get("/preview", (request, response) -> {
 			var url = request.queryParams("url");
-			if (isBlockedAddress(url)) {
-				throw new IllegalArgumentException("URL refers to local/private address");
-			}
-			var doc = Jsoup.connect(url).timeout(2999).get();
+			var doc = fetch(url);
 			// Extract desired metadata properties from HTML.
 			var title = doc.title();
 			var desc = doc.head().selectFirst("meta[property='og:description']");
