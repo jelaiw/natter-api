@@ -73,6 +73,20 @@ public class Main {
 			}
 		});
 
+		// Define valid hostnames for API.
+		var expectedHostNames = Set.of(
+			"api.natter.com",
+			"api.natter.com:30567",
+			"natter-link-preview-service:4567",
+			"natter-link-preview-service.natter-api:4567",
+			"natter-link-preview-service.natter-api.svc.cluster.local:4567");
+		// Validate Host request header. See chapter 10.2.8 for further context.
+		before((request, response) -> {
+			if (!expectedHostNames.contains(request.host())) {
+				halt(400);
+			}
+		});
+
 		// Set up CORS filter with allowed origins.
 		before(new CorsFilter(Set.of("https://localhost:9999")));
 

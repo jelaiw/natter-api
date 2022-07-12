@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static spark.Spark.afterAfter;
 import static spark.Spark.get;
+import static spark.Spark.before;
+import static spark.Spark.halt;
 import static spark.Spark.exception;
 import spark.ExceptionHandler;
 import org.jsoup.Jsoup;
@@ -16,6 +18,7 @@ import java.net.Inet6Address;
 import java.io.IOException;
 import org.jsoup.nodes.Document;
 import static org.jsoup.Connection.Method.GET;
+import java.util.Set;
 
 public class LinkPreviewer {
 	private static final Logger logger = LoggerFactory.getLogger(LinkPreviewer.class);
@@ -58,6 +61,20 @@ public class LinkPreviewer {
 	}
 
 	public static void main(String...args) {
+		// Define valid hostnames for API.
+		var expectedHostNames = Set.of(
+			"api.natter.com",
+			"api.natter.com:30567",
+			"natter-link-preview-service:4567",
+			"natter-link-preview-service.natter-api:4567",
+			"natter-link-preview-service.natter-api.svc.cluster.local:4567");
+		// Validate Host request header. See chapter 10.2.8 for further context.
+		before((request, response) -> {
+			if (!expectedHostNames.contains(request.host())) {
+				halt(400);
+			}
+		});
+
 		afterAfter((request, response) -> {
 			response.type("application/json; charset=utf-8");
 		});
