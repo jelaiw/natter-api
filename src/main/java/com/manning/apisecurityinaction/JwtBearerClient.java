@@ -5,6 +5,10 @@ import java.security.KeyStore;
 import java.security.interfaces.ECPrivateKey;
 import java.util.Date;
 import java.util.UUID;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -48,5 +52,17 @@ public class JwtBearerClient {
 		var jwt = new SignedJWT(header, claims);
 		jwt.sign(new ECDSASigner(privateKey)); // Sign JWT with private key.
 		var assertion = jwt.serialize();
+
+		// Send client assertion as request to AS.
+		var form = "grant_type=client_credentials&scope=create_space&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=" + assertion;
+		var httpClient = HttpClient.newHttpClient();
+		var request = HttpRequest.newBuilder()
+				.uri(URI.create(as))
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.POST(HttpRequest.BodyPublishers.ofString(form))
+				.build();
+		var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+		System.out.println(response.statusCode());
+		System.out.println(response.body());
 	}
 }
