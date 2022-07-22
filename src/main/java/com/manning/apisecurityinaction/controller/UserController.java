@@ -94,6 +94,12 @@ public class UserController {
 	}
 
 	public void authenticate(Request request, Response response) {
+		// If authentication of client certificate is successful, set the subject to SAN (for service account).
+		if ("SUCCESS".equals(request.headers("ssl-client-verify"))) {
+			processClientCertificateAuth(request);
+			return;
+		}
+		// Otherwise, use existing password-based authentication.
 		var authHeader = request.headers("Authorization");
 		if (authHeader == null || !authHeader.startsWith("Basic ")) {
 			return;
