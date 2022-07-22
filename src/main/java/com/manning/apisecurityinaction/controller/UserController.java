@@ -10,6 +10,12 @@ import static spark.Spark.halt;
 
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import java.io.ByteArrayInputStream;
+import java.net.URLDecoder;
+import java.security.cert.X509Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
 
 public class UserController {
 	private static final String USERNAME_PATTERN = "[a-zA-Z][a-zA-Z0-9]{1,29}";
@@ -18,6 +24,43 @@ public class UserController {
 
 	public UserController(Database database) {
 		this.database = database;
+	}
+
+	public static X509Certificate decodeCert(String encodedCert) {
+		// URL-decode ssl-client-cert request header (added by nginx).
+		var pem = URLDecoder.decode(encodedCert, UTF_8);
+		try (var in = new ByteArrayInputStream(pem.getBytes(UTF_8))) {
+			// Parse the PEM-encoded certificate using a CertificateFactory.
+			var certFactory = CertificateFactory.getInstance("X.509");
+			return (X509Certificate) certFactory.generateCertificate(in);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static final int DNS_TYPE = 2;
+	/* package private */ void processClientCertificateAuth(Request request) {
+		// Extract client certificate from header and decode it.
+		var pem = request.headers("ssl-client-cert");
+		var cert = decodeCert(pem);
+		try {
+			if (cert.getSubjectAlternativeNames() == null) {
+				return;
+			}
+			// Find first SAN entry with DNS type.
+			for (var san : cert.getSubjectAlternativeNames()) {
+				if ((Integer) san.get(0) == DNS_TYPE) {
+					var subject = (String) san.get(1);
+					// Set service account identity as the subject of the request.
+					request.attribute("subject", subject);
+					return;
+				}
+			}
+		}
+		catch (CertificateParsingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void lookupPermissions(Request request, Response response) {
