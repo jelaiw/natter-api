@@ -17,6 +17,10 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.SSLContext;
 import java.security.KeyStore;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.cert.X509Certificate;
+
+import com.manning.apisecurityinaction.controller.UserController;
 
 import spark.Request;
 import org.json.JSONObject;
@@ -101,7 +105,7 @@ public class OAuth2TokenStore implements SecureTokenStore {
 				var json = new JSONObject(httpResponse.body());
 
 				if (json.getBoolean("active")) {
-					return processResponse(json);
+					return processResponse(json, request);
 				}
 			}
 		}
@@ -116,9 +120,33 @@ public class OAuth2TokenStore implements SecureTokenStore {
 		return Optional.empty();
 	}
 
-	private Optional<Token> processResponse(JSONObject response) {
+	private Optional<Token> processResponse(JSONObject response, Request originalRequest) {
 		var expiry = Instant.ofEpochSecond(response.getLong("exp"));
 		var subject = response.getString("sub");
+
+		// Check if a confirmation key is associated with the token.
+		var confirmationKey = response.optJSONObject("cnf");
+		if (confirmationKey != null) {
+			// Loop through confirmation methods to make sure all are satisfied.
+			for (var method : confirmationKey.keySet()) {
+				// Reject request if there are any unrecognized confirmation methods.
+				if (!"x5t#S256".equals(method)) {
+					throw new RuntimeException("Unknown confirmation method: " + method);
+				}
+				// Reject request if no valid certificate is provided.
+				if (!"SUCCESS".equals(originalRequest.headers("ssl-client-verify"))) {
+					return Optional.empty();
+				}
+				// Extract expected hash from the confirmation key.
+				var expectedHash = Base64url.decode(confirmationKey.getString(method));
+				// Decode client certificate and compare the hashes. Reject if they don't match.
+				var cert = UserController.decodeCert(originalRequest.headers("ssl-client-cert"));
+				var certHash = thumbprint(cert);
+				if (!MessageDigest.isEqual(expectedHash, certHash)) {
+					return Optional.empty();
+				}
+			}
+		}
 
 		var token = new Token(expiry, subject);
 
@@ -126,5 +154,16 @@ public class OAuth2TokenStore implements SecureTokenStore {
 		token.attributes.put("client_id", response.optString("client_id"));
 
 		return Optional.of(token);
+	}
+
+	private byte[] thumbprint(X509Certificate certificate) {
+		try {
+			var sha256 = MessageDigest.getInstance("SHA-256");
+			// Hash the bytes of the entire certificate.
+			return sha256.digest(certificate.getEncoded());
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
