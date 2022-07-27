@@ -38,6 +38,7 @@ public class Main {
 		// Enable TLS, see docs at https://sparkjava.com/documentation#embedded-web-server.
 //		secure("localhost.p12", "changeit", null, null);
 
+		// Read database credentials from files on mounted secret path, instead of hard-coding values.
 		var secretsPath = Paths.get("/etc/secrets/database");
 		var dbUsername = Files.readString(secretsPath.resolve("username"));
 		var dbPassword = Files.readString(secretsPath.resolve("password"));
