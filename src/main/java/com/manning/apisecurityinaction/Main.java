@@ -8,7 +8,8 @@ import com.manning.apisecurityinaction.token.CookieTokenStore;
 import static spark.Spark.*;
 
 import javax.crypto.SecretKey;
-import java.nio.file.*;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.Set;
 import java.security.KeyStore;
 import java.io.FileInputStream;
@@ -37,8 +38,12 @@ public class Main {
 		// Enable TLS, see docs at https://sparkjava.com/documentation#embedded-web-server.
 //		secure("localhost.p12", "changeit", null, null);
 
+		var secretsPath = Paths.get("/etc/secrets/database");
+		var dbUsername = Files.readString(secretsPath.resolve("username"));
+		var dbPassword = Files.readString(secretsPath.resolve("password"));
+
 		var jdbcUrl = "jdbc:h2:tcp://natter-database-service:9092/mem:natter";
-		var datasource = JdbcConnectionPool.create(jdbcUrl, "natter", "password");
+		var datasource = JdbcConnectionPool.create(jdbcUrl, dbUsername, dbPassword);
 		var database = Database.forDataSource(datasource);
 		createTables(database);
 		// Implement least privilege with natter_api_user.
