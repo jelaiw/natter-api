@@ -56,7 +56,10 @@ public class Main {
 		var keyStore = KeyStore.getInstance("PKCS12");
 		keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
 		var macKey = keyStore.getKey("hmac-key", keyPassword);
-		var encKey = keyStore.getKey("aes-key", keyPassword);
+//		var encKey = keyStore.getKey("aes-key", keyPassword);
+		// Derive AES encryption key from HMAC key for chapter 11.5.4 key derivation exercise.
+		// Note, we should heed the chapter warning and derive a second HMAC key to use for signing, if we are going to use macKey as a master key for KDF.
+		var encKey = HKDF.expand(macKey, "token-encryption-key", 32, "AES");
 
 		// Use DatabaseTokenStore because it creates short tokens (and therefore short capability URIs).
 		var capController = new CapabilityController(MacaroonTokenStore.wrap(new DatabaseTokenStore(database), macKey));
