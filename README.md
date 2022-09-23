@@ -1,4 +1,4 @@
-![build workflow](https://github.com/jelaiw/natter-api/actions/workflows/pr_build.yml/badge.svg)
+![build workflow](https://github.com/jelaiw/natter-api/actions/workflows/build.yml/badge.svg)
 ## Overview
 Implementation of Natter API exercises from Neil Madden's excellent *API Security in Action* book [1].
 
