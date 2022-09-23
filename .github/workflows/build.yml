@@ -1,4 +1,4 @@
-name: "Pull request build"
+name: "Build"
 # See https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#using-multiple-events for syntax.
 on:
   push:
