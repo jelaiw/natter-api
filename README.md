@@ -9,4 +9,5 @@ Git tag each chapter exercise to make it easier to jump to a particular point in
 
 ## References
 1. "API Security in Action". Madden, Neil. Manning, Dec 8 2020.
-2. https://github.com/NeilMadden/apisecurityinaction
+2. Source code. https://github.com/NeilMadden/apisecurityinaction.
+2. Postman collection. https://www.postman.com/collections/ef49c7f5cba0737ecdfd.
