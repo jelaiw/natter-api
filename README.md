@@ -5,7 +5,7 @@ Implement Natter API from Neil Madden's excellent *API Security in Action* book 
 Git tag each chapter exercise to make it easier to jump to a particular point in time. This seems to be more useful in anticipation of how I may reference this material in the future (vs. tagging the chapter beginning and end, as the author does for the reference implementation [2]), but we will see.
 
 ## Architecture
-<img src="figure_2-1.png" width=640>
+<img src="figure-2_1.png" width=640>
 
 ## Database
 <img src="figure-2_2.png" width=640>
